@@ -1,5 +1,11 @@
 {
   "cSpell.words": [
-    "uruth"
+    "devel",
+    "fontconfig",
+    "libclang",
+    "libxcb",
+    "libxkbcommon",
+    "uruth",
+    "xfixes"
   ]
 }
