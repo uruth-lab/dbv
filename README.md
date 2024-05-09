@@ -53,7 +53,8 @@ cargo install --git https://github.com/uruth-lab/dbv --locked
 
 # Credits
 
-- My professor for approving the development of this tool as part of my thesis. It turned out to be quite useful for quickly experimenting with ideas.
+- My supervisor, Dr Ruth Urner for her support during the development of this tool as part of my thesis.
+  It turned out to be quite useful for quickly experimenting with ideas.
 - This project is started from the [egui template](https://github.com/emilk/eframe_template/).
 - It is heavily inspired by the plots part of the [egui demo](https://www.egui.rs/#demo).
 - The good people in the [egui discord](https://discord.com/invite/JFcEma9bJq) that provided guidance and invaluable assistance.
