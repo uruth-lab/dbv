@@ -26,6 +26,7 @@ pub struct PyExperiment {
 }
 
 impl PyExperiment {
+    // TODO 1: Make this configurable as a setting to support the fact that the code is now separate
     pub const DATA_DIR: &'static str = "../data";
 
     pub fn unset_filename(&mut self) {
