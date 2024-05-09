@@ -228,7 +228,7 @@ impl UndoManager {
             }
             debug_assert!(
                 self.undo_events.len() <= max_size as usize,
-                "at this point it should be withing the limit"
+                "at this point it should be within the limit"
             );
         }
     }
