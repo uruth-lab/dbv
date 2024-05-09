@@ -34,6 +34,11 @@ web-time = "1.0.0"
 # native:
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 env_logger = "0.11"
+# Unable to upgrade image to 0.25 because
+# ```
+# thread 'main' panicked at src/main.rs:19:22:
+# Failed to load icon: Unsupported(UnsupportedError { format: Exact(Ico), kind: Format(Exact(Ico)) }
+# ```
 image = "0.24.7"
 matio-rs = "1.3.1"
 poll-promise = { version = "0.3.0", features = ["tokio"] }
