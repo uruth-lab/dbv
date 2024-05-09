@@ -4,30 +4,47 @@ version = "0.1.0"
 authors = ["One <one.bgz1@gmail.com>"]
 edition = "2021"
 include = ["LICENSE-APACHE", "LICENSE-MIT", "**/*.rs", "Cargo.toml"]
-rust-version = "1.76"
 
 [package.metadata.docs.rs]
 all-features = true
 targets = ["x86_64-unknown-linux-gnu", "wasm32-unknown-unknown"]
 
 [dependencies]
-eframe = { version = "0.27.0", default-features = false, features = ["accesskit", # Make egui compatible with screen readers. NOTE: adds a lot of dependencies.
+anyhow = "1.0.76"
+chrono = { version = "0.4.34", default-features = false, features = ["clock"] }
+csv = "1.3.0"
+ecolor = { version = "0.27", features = ["serde"] }
+eframe = { version = "0.27", default-features = false, features = ["accesskit", # Make egui compatible with screen readers. NOTE: adds a lot of dependencies.
   "default_fonts", # Embed the default egui fonts.
   "glow", # Use the glow rendering backend. Alternative: "wgpu".
   "persistence", # Enable restoring app state when restarting the app.
 ] }
-egui = "0.27.0"
+egui = "0.27"
+egui_extras = "0.27"
+egui_plot = { version = "0.27", features = ["serde"] }
+lazy_static = "1.4.0"
 log = "0.4"
-
-# You only need serde if you want app persistence:
+opener = { version = "0.6.1", features = ["reveal"] }
+regex = "1.10.2"
+same-file = "1.0.6"
 serde = { version = "1", features = ["derive"] }
+serde_repr = "0.1.17"
+web-time = "1.0.0"
 
 # native:
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 env_logger = "0.11"
+image = "0.24.7"
+matio-rs = "1.3.1"
+poll-promise = { version = "0.3.0", features = ["tokio"] }
+rfd = { version = "0.13.0", features = ["tokio"] }
+tokio = { version = "1", features = ["full"] }
 
 # web:
 [target.'cfg(target_arch = "wasm32")'.dependencies]
+poll-promise = { version = "0.3.0", features = ["web"] }
+rfd = "0.13.0"
+tokio = { version = "1", default-features = false, features = ["sync"] }
 wasm-bindgen-futures = "0.4"
 
 [profile.release]
@@ -36,6 +53,11 @@ opt-level = 2 # fast and small wasm
 # Optimize all dependencies even in debug builds:
 [profile.dev.package."*"]
 opt-level = 2
+
+[dev-dependencies]
+pretty_assertions = "1.4.0"
+rstest = "0.18.2"
+tempfile = "3.8.1"
 
 [patch.crates-io]
 # If you want to use the bleeding edge version of egui and eframe:
