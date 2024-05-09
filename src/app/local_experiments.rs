@@ -41,9 +41,6 @@ pub trait ModelTrain {
     /// Provides a way to get the configuration required while training
     fn train_config_clone(&self) -> Self::TrainConfig;
 
-    /// Provides a way to get the training configuration for editing
-    fn train_config_mut(&mut self) -> &mut Self::TrainConfig;
-
     /// Copies the current model (less any current result info) and returns a new model that can be used to replace the previous
     ///
     /// Doesn't directly consume self because it will likely need to be wrapped in a new enum variant
@@ -62,23 +59,8 @@ pub trait ModelInference {
     fn prediction_on_training_data(&self, index: usize) -> DataLabel;
 }
 
-pub trait ModelInferenceBatch: ModelInferenceConfig {
-    /// Gives back predictions on a batch of points (For some algorithms prediction can be more expensive than training)
-    async fn predict_batch(
-        predict_config: Self::PredictConfig,
-        points: DataPoints,
-    ) -> anyhow::Result<(Scores, DataPoints)>;
-}
-
 pub trait ModelInferenceConfig: ModelInference {
     type PredictConfig: Clone;
-
-    /// Provides a way to get the configuration required for batch predictions
-    ///
-    /// Only takes a mutable reference because it was easier to implement and we would always have that anyway
-    fn predict_config_clone(&mut self) -> Self::PredictConfig {
-        self.predict_config_mut().clone()
-    }
 
     /// Provides a way to edit the configurations
     fn predict_config_mut(&mut self) -> &mut Self::PredictConfig;

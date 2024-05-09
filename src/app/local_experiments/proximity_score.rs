@@ -50,10 +50,6 @@ impl<T> ModelTrain for &ProximityScore<T> {
 
     fn train_config_clone(&self) -> Self::TrainConfig {}
 
-    fn train_config_mut(&mut self) -> &mut Self::TrainConfig {
-        unimplemented!("this type does not have training data. If we later decide to try generically surface this somehow we will need to revisit this")
-    }
-
     fn to_inference(&self, results: TrainResults) -> ProximityScore<Trained> {
         let predict_config = PredictConfig::from(&results);
         let train_data = TrainingInfo {
@@ -92,10 +88,6 @@ impl<T> ModelTrain for ProximityScore<T> {
     }
 
     fn train_config_clone(&self) -> Self::TrainConfig {}
-
-    fn train_config_mut(&mut self) -> &mut Self::TrainConfig {
-        unimplemented!("this type does not have training data. If we later decide to try generically surface this somehow we will need to revisit this")
-    }
 
     fn to_inference(&self, results: TrainResults) -> ProximityScore<Trained> {
         (&self).to_inference(results)
