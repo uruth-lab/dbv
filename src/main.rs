@@ -28,8 +28,6 @@ fn main() -> eframe::Result<()> {
     )
 }
 
-// TODO 3: Investigate why `pages-build-deployment` doesn't seem to be running automatically on push to main
-
 // When compiling to web using trunk:
 #[cfg(target_arch = "wasm32")]
 fn main() {
