@@ -33,14 +33,14 @@ impl Default for StatusMsg {
 
 impl StatusMsg {
     fn msg_time() -> String {
-        use chrono::TimeZone as _;
         let time_stamp = web_time::SystemTime::UNIX_EPOCH
             .elapsed()
             .expect("expected date on system to be after the epoch")
             .as_secs();
 
-        let dt = chrono::NaiveDateTime::from_timestamp_opt(time_stamp as i64, 0).unwrap();
-        let dt = chrono::Local::from_utc_datetime(&chrono::Local, &dt);
+        let dt = chrono::DateTime::from_timestamp(time_stamp as i64, 0)
+            .unwrap()
+            .with_timezone(&chrono::Local);
         dt.format("%H:%M:%S").to_string()
     }
 
