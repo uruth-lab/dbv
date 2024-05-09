@@ -20,7 +20,13 @@ To compile and install locally will require you to have [rust installed](https:/
 
 ### Possible dependencies
 
-My expectation is that you will require similar dependencies to the [egui Demo](https://github.com/emilk/egui?tab=readme-ov-file#demo).
+Only known dependency is on debian (known because of CI) for the file picker:
+
+```sh
+sudo apt-get install libgtk-3-dev
+```
+
+It is possible you will require similar dependencies to the [egui Demo](https://github.com/emilk/egui?tab=readme-ov-file#demo).
 For ease of reference I've included them here from their readme so you can easily reference them as needed.
 I haven't invested the time into setting up a clean machine to test these on and only provide them as a convenience.
 Personally I would try to install without installing the dependencies listed below and see if they are actually needed.
