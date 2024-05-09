@@ -28,6 +28,8 @@ fn main() -> eframe::Result<()> {
     )
 }
 
+// TODO 3: Fix bookmark icon and PWA icon
+
 // When compiling to web using trunk:
 #[cfg(target_arch = "wasm32")]
 fn main() {
