@@ -6,17 +6,21 @@
 fn main() -> eframe::Result<()> {
     env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
 
+    let rt = dbv::background_worker::create_runtime();
+    let _enter = rt.enter(); // This Guard must be held to call `tokio::spawn` anywhere in the program
+    dbv::background_worker::start_background_worker(rt);
+
     let native_options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_inner_size([400.0, 300.0])
-            .with_min_inner_size([300.0, 220.0])
+            .with_inner_size([800.0, 800.0])
+            .with_min_inner_size([300.0, 220.0]) // TODO 3: Test if these sizes make sense
             .with_icon(
-                // NOTE: Adding an icon is optional
-                eframe::icon_data::from_png_bytes(&include_bytes!("../assets/icon-256.png")[..])
+                eframe::icon_data::from_png_bytes(&include_bytes!("../assets/favicon.ico")[..])
                     .expect("Failed to load icon"),
             ),
         ..Default::default()
     };
+    // TODO 4: Find a way to delete saved data and not save on that close to get back to defaults
     eframe::run_native(
         "DBV - Data Builder Viewer",
         native_options,
