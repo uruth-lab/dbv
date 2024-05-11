@@ -483,7 +483,9 @@ impl DBV {
             self.last_cursor_pos = pointer_coordinate;
         }
 
-        self.click_handler(&response, pointer_coordinate);
+        // Needs to have the option to use the last cursor position because on mobile the cursor position
+        // doesn't persist after the finger is lifted which is when the click happens
+        self.click_handler(&response, pointer_coordinate.or(self.last_cursor_pos));
     }
 
     fn ui_table(&mut self, ui: &mut egui::Ui) {
