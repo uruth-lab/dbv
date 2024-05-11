@@ -59,6 +59,7 @@ pub struct DBV {
     show_data_only: bool,
     display_mode: DisplayMode,
     on_load_reset_plot_zoom: bool,
+    show_plot_bounds: bool,
     #[cfg(not(target_arch = "wasm32"))]
     py_experiment: PyExperiment,
     loc_experiment: LocalExperiment,
@@ -145,6 +146,7 @@ impl Default for DBV {
             op_state: Default::default(),
             on_load_reset_plot_zoom: true,
             edit_point: Default::default(),
+            show_plot_bounds: false,
         }
     }
 }
@@ -318,6 +320,8 @@ impl DBV {
             ui.checkbox(&mut self.allow_boxed_zoom, "Allow boxed zoom")
                 .on_hover_text("When enabled, instructions include an explanation");
 
+            ui.checkbox(&mut self.show_plot_bounds, "Show plot bounds");
+
             ui.checkbox(&mut self.on_load_reset_plot_zoom, "On load reset plot zoom");
 
             ui.horizontal(|ui| {
@@ -382,15 +386,17 @@ impl DBV {
             self.ui_btn_clear_status_msgs(ui);
             self.ui_btn_delete_all_points(ui);
             self.ui_btn_reset_plot_zoom(ui);
-            if let Some(bounds) = self.plot_bounds {
-                ui.label(format!(
-                    "Plot bounds: min: {:.02?}, max: {:.02?}",
-                    bounds.min(),
-                    bounds.max()
-                ));
-            }
             if let Some(pos) = self.last_cursor_pos.as_ref() {
-                ui.label(format!("{:?}", pos));
+                ui.label(format!("Last Pos: {:.3},{:.3}", pos.x, pos.y));
+            }
+            if self.show_plot_bounds {
+                if let Some(bounds) = self.plot_bounds {
+                    ui.label(format!(
+                        "Plot bounds: min: {:.02?}, max: {:.02?}",
+                        bounds.min(),
+                        bounds.max()
+                    ));
+                }
             }
             match &self.state_reset_plot_zoom {
                 StatePlotResetZoom::Set => {
