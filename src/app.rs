@@ -71,6 +71,8 @@ pub struct DBV {
     #[serde(skip)]
     plot_bounds: Option<PlotBounds>,
     #[serde(skip)]
+    last_cursor_pos: Option<egui_plot::PlotPoint>,
+    #[serde(skip)]
     state_reset_plot_zoom: StatePlotResetZoom,
     #[serde(skip)]
     status_msg: StatusMsg,
@@ -137,6 +139,7 @@ impl Default for DBV {
                 "Max History Size: ",
             ),
             plot_bounds: Default::default(),
+            last_cursor_pos: Default::default(),
             state_reset_plot_zoom: Default::default(),
             status_msg: Default::default(),
             op_state: Default::default(),
@@ -386,6 +389,9 @@ impl DBV {
                     bounds.max()
                 ));
             }
+            if let Some(pos) = self.last_cursor_pos.as_ref() {
+                ui.label(format!("{:?}", pos));
+            }
             match &self.state_reset_plot_zoom {
                 StatePlotResetZoom::Set => {
                     ui.label("Plot reset: In Progress");
@@ -467,6 +473,9 @@ impl DBV {
             self.plot_bounds = Some(plot_ui.plot_bounds());
             plot_ui.pointer_coordinate()
         });
+        if pointer_coordinate.is_some() {
+            self.last_cursor_pos = pointer_coordinate;
+        }
 
         self.click_handler(&response, pointer_coordinate);
     }
