@@ -26,14 +26,7 @@ impl SingleMax {
 #[derive(serde::Deserialize, serde::Serialize, PartialEq)]
 pub struct TrainingInfo {
     results: TrainResults,
-    predict_config: PredictConfig,
-}
-
-#[derive(serde::Deserialize, serde::Serialize, PartialEq, Clone, Copy, Debug)]
-pub struct PredictConfig {
-    pub min_score: f64,
-    pub max_score: f64,
-    pub threshold: f64,
+    outlier_index: usize,
 }
 
 impl<T> ModelTrain for &SingleMax<T> {
@@ -51,10 +44,10 @@ impl<T> ModelTrain for &SingleMax<T> {
     fn train_config_clone(&self) -> Self::TrainConfig {}
 
     fn to_inference(&self, results: TrainResults) -> SingleMax<Trained> {
-        let predict_config = PredictConfig::from(&results);
+        let outlier_index = calculate_outlier_index(&results);
         let train_data = TrainingInfo {
             results,
-            predict_config,
+            outlier_index,
         };
         SingleMax::<Trained> {
             train_data: Some(train_data),
@@ -76,10 +69,22 @@ impl<T> ModelTrain for SingleMax<T> {
             bail!("no points found");
         }
         let pairwise_distances = points.pairwise_distances();
-        let n = points.len() as f64;
         let scores = pairwise_distances
             .into_iter()
-            .map(|distances| distances.into_iter().sum::<f64>() / n)
+            .enumerate()
+            .map(|(score_for_index, distances)| {
+                distances
+                    .into_iter()
+                    .enumerate()
+                    .fold(f64::INFINITY, |acc, (other_index, elem)| {
+                        if score_for_index == other_index {
+                            // Skip distance to itself when getting minimum
+                            acc
+                        } else {
+                            acc.min(elem)
+                        }
+                    })
+            })
             .collect();
         Ok(TrainResults {
             scores,
@@ -108,12 +113,11 @@ impl ModelInference for &SingleMax<Trained> {
             .train_data
             .as_ref()
             .expect("expected to only be called if this is set (checked by type)");
-        let scores = &training_info.results.scores;
-        let threshold = training_info.predict_config.threshold;
-        if scores[index] < threshold {
-            DataLabel::Normal
-        } else {
+
+        if index == training_info.outlier_index {
             DataLabel::Anomaly
+        } else {
+            DataLabel::Normal
         }
     }
 
@@ -141,44 +145,31 @@ impl ModelInference for SingleMax<Trained> {
 }
 
 impl ModelInferenceConfig for SingleMax<Trained> {
-    type PredictConfig = PredictConfig;
+    type PredictConfig = ();
 
     fn predict_config_mut(&mut self) -> &mut Self::PredictConfig {
-        &mut self
-            .train_data
-            .as_mut()
-            .expect("expected to only be called if this is set (checked by type)")
-            .predict_config
+        unimplemented!("there isn't a suitable implementation for this")
     }
 }
 
-impl From<&TrainResults> for PredictConfig {
-    fn from(value: &TrainResults) -> Self {
-        let scores = &value.scores;
-        debug_assert!(
-            !scores.is_empty(),
-            "training should fail if there are no points"
-        );
-        let mut min_score = scores[0];
-        let mut max_score = scores[0];
-        for &score in scores {
-            if min_score > score {
-                min_score = score;
-            }
-            if max_score < score {
-                max_score = score;
-            }
-        }
-        let threshold =
-            Self::THRESHOLD_RATIO * max_score + (1. - Self::THRESHOLD_RATIO) * min_score;
-        Self {
-            min_score,
-            max_score,
-            threshold,
-        }
-    }
-}
-
-impl PredictConfig {
-    const THRESHOLD_RATIO: f64 = 3. / 4.; // Set to 75% NB: code assumes this is between 0 and 1
+/// Get the index of the maximum score (break ties with lower index)
+fn calculate_outlier_index(results: &TrainResults) -> usize {
+    assert!(
+        !results.scores.is_empty(),
+        "requires at least one point for training"
+    );
+    results
+        .scores
+        .iter()
+        .enumerate()
+        .fold(
+            (0, -f64::INFINITY),
+            |acc, elem| match PartialOrd::partial_cmp(&acc.1, elem.1)
+                .expect("distances should not be NAN")
+            {
+                std::cmp::Ordering::Less => (elem.0, *elem.1), // Need new tuple to remove reference
+                _ => acc, // if Equal we want the previous value as well so that we get the lower index
+            },
+        )
+        .0
 }
