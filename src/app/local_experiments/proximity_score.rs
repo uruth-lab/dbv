@@ -116,6 +116,14 @@ impl ModelInference for &ProximityScore<Trained> {
             DataLabel::Anomaly
         }
     }
+
+    fn score_for_training_data(&self, index: usize) -> f64 {
+        let training_info = self
+            .train_data
+            .as_ref()
+            .expect("expected to only be called if this is set (checked by type)");
+        training_info.results.scores[index]
+    }
 }
 
 impl ModelInference for ProximityScore<Trained> {
@@ -125,6 +133,10 @@ impl ModelInference for ProximityScore<Trained> {
 
     fn prediction_on_training_data(&self, index: usize) -> DataLabel {
         (&self).prediction_on_training_data(index)
+    }
+
+    fn score_for_training_data(&self, index: usize) -> f64 {
+        (&self).score_for_training_data(index)
     }
 }
 

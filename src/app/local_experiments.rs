@@ -55,8 +55,14 @@ pub trait ModelInference {
     /// Gives a prediction on a point that was in the training data
     ///
     /// # PANICS
-    /// If index is not within the scores during training
+    /// If index is not within the points during training
     fn prediction_on_training_data(&self, index: usize) -> DataLabel;
+
+    /// Gives a score for a point that was in the training data
+    ///
+    /// # PANICS
+    /// If index is not within the scores during training
+    fn score_for_training_data(&self, index: usize) -> f64;
 }
 
 pub trait ModelInferenceConfig: ModelInference {

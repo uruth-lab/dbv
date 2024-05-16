@@ -508,7 +508,10 @@ impl DBV {
 
         if has_inference_model {
             // Add columns for inference results
-            table_builder = table_builder.column(Column::auto()).column(Column::auto());
+            table_builder = table_builder
+                .column(Column::auto())
+                .column(Column::auto())
+                .column(Column::auto());
         }
         table_builder = table_builder.min_scrolled_height(0.0);
 
@@ -534,6 +537,9 @@ impl DBV {
                 });
                 header.col(|ui| {
                     ui.strong("classification");
+                });
+                header.col(|ui| {
+                    ui.strong("score");
                 });
             }
         });
@@ -626,11 +632,15 @@ impl DBV {
                 if has_inference_model {
                     if let Some(model) = self.loc_inference_model() {
                         let predicted = model.prediction_on_training_data(row_index);
+                        let score = model.score_for_training_data(row_index);
                         row.col(|ui| {
                             ui.label(predicted.to_string());
                         });
                         row.col(|ui| {
                             ui.label(prediction_classification(label, predicted).to_string());
+                        });
+                        row.col(|ui| {
+                            ui.label(score.to_string());
                         });
                     }
                 }
