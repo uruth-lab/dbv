@@ -984,8 +984,12 @@ impl DBV {
                     LocalExperiment::ProximityScoreTrained(..) => (), // No training settings for now
                 }
 
-                // If not None show run button
+                // If not None show description and run button
                 if !self.loc_experiment.is_none() {
+                    ui.label(format!(
+                        "Description: {}",
+                        self.loc_experiment.description()
+                    ));
                     ui.horizontal(|ui| {
                         self.ui_generic_run_button(
                             ui,

@@ -109,6 +109,16 @@ impl LocalExperiment {
             LocalExperiment::ProximityScoreTrained(x) => Some(x.data_timestamp_at_training()),
         }
     }
+
+    pub(crate) fn description(&self) -> &str {
+        match self {
+            LocalExperiment::None => "N/A",
+            LocalExperiment::ProximityScoreUntrained(_)
+            | LocalExperiment::ProximityScoreTrained(_) => {
+                "Scores are equal to the average distance to all other points"
+            }
+        }
+    }
 }
 
 impl Default for LocalExperiment {
