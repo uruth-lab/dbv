@@ -7,6 +7,7 @@ use egui_extras::{Column, TableBuilder};
 use egui_plot::{Legend, MarkerShape, Plot, PlotBounds, PlotResponse, Points};
 use log::{debug, info};
 
+use crate::app::local_experiments::SingleMax;
 #[cfg(not(target_arch = "wasm32"))]
 use crate::app::py_experiment::PyExperiment;
 
@@ -933,6 +934,16 @@ impl DBV {
                                             (&x).to_inference(results),
                                         )
                                     }
+                                    LocalExperiment::SingleMaxUntrained(x) => {
+                                        self.loc_experiment = LocalExperiment::SingleMaxTrained(
+                                            (&x).to_inference(results),
+                                        )
+                                    }
+                                    LocalExperiment::SingleMaxTrained(x) => {
+                                        self.loc_experiment = LocalExperiment::SingleMaxTrained(
+                                            (&x).to_inference(results),
+                                        )
+                                    }
                                 }
                             }
                         },
@@ -975,13 +986,24 @@ impl DBV {
                         self.loc_experiment =
                             LocalExperiment::ProximityScoreUntrained(ProximityScore::new());
                     }
+                    if ui
+                        .add(egui::RadioButton::new(
+                            self.loc_experiment.is_single_max(),
+                            "Single Max",
+                        ))
+                        .clicked()
+                    {
+                        self.loc_experiment = LocalExperiment::SingleMaxUntrained(SingleMax::new());
+                    }
                 });
 
                 // Show configuration options for experiment
                 match &mut self.loc_experiment {
                     LocalExperiment::None => (), // Do nothing there are not settings if there is no algorithm
                     LocalExperiment::ProximityScoreUntrained(..) => (), // No training settings for now
-                    LocalExperiment::ProximityScoreTrained(..) => (), // No training settings for now
+                    LocalExperiment::ProximityScoreTrained(..) => (),
+                    LocalExperiment::SingleMaxUntrained(..) => (),
+                    LocalExperiment::SingleMaxTrained(..) => (),
                 }
 
                 // If not None show description and run button
@@ -1056,6 +1078,40 @@ impl DBV {
                 self.train_model_do(
                     async move {
                         ProximityScore::<UnTrained>::train(
+                            config_clone,
+                            points,
+                            data_timestamp,
+                            &mut status_msg,
+                        )
+                        .await
+                    },
+                    ctx,
+                );
+            }
+            LocalExperiment::SingleMaxUntrained(x) => {
+                // Allow unit binding so if we change the code later it will still work
+                #[allow(clippy::let_unit_value)]
+                let config_clone = x.train_config_clone();
+                self.train_model_do(
+                    async move {
+                        SingleMax::<UnTrained>::train(
+                            config_clone,
+                            points,
+                            data_timestamp,
+                            &mut status_msg,
+                        )
+                        .await
+                    },
+                    ctx,
+                );
+            }
+            LocalExperiment::SingleMaxTrained(x) => {
+                // Allow unit binding so if we change the code later it will still work
+                #[allow(clippy::let_unit_value)]
+                let config_clone = x.train_config_clone();
+                self.train_model_do(
+                    async move {
+                        SingleMax::<UnTrained>::train(
                             config_clone,
                             points,
                             data_timestamp,
@@ -1151,6 +1207,8 @@ impl DBV {
                                 // TODO 3: Add button to set threshold to best value based on F1
                             });
                         }
+                        LocalExperiment::SingleMaxUntrained(..)
+                        | LocalExperiment::SingleMaxTrained(_) => (), // Never has any configuration options
                     }
                 }
             };

@@ -4,8 +4,10 @@ use super::{
 };
 
 mod proximity_score;
+mod singlemax;
 
 pub use proximity_score::ProximityScore;
+pub use singlemax::SingleMax;
 
 pub type Scores = Vec<f64>;
 
@@ -14,6 +16,8 @@ pub enum LocalExperiment {
     None,
     ProximityScoreUntrained(ProximityScore<UnTrained>),
     ProximityScoreTrained(ProximityScore<Trained>),
+    SingleMaxUntrained(SingleMax<UnTrained>),
+    SingleMaxTrained(SingleMax<Trained>),
 }
 
 #[derive(serde::Deserialize, serde::Serialize, PartialEq, Debug)]
@@ -92,10 +96,21 @@ impl LocalExperiment {
             || matches!(self, Self::ProximityScoreTrained(..))
     }
 
+    /// Returns `true` if the local experiment is [`SingleMax`].
+    ///
+    /// [`SingleMax`]: LocalExperiment::SingleMax
+    #[must_use]
+    pub fn is_single_max(&self) -> bool {
+        matches!(self, Self::SingleMaxTrained(..)) || matches!(self, Self::SingleMaxUntrained(..))
+    }
+
     pub(crate) fn model_inference(&self) -> Option<&dyn ModelInference> {
         Some(match self {
-            LocalExperiment::None | LocalExperiment::ProximityScoreUntrained(_) => return None,
+            LocalExperiment::None
+            | LocalExperiment::ProximityScoreUntrained(_)
+            | LocalExperiment::SingleMaxUntrained(_) => return None,
             LocalExperiment::ProximityScoreTrained(x) => x,
+            LocalExperiment::SingleMaxTrained(x) => x,
         })
     }
 
@@ -105,8 +120,11 @@ impl LocalExperiment {
 
     pub(crate) fn data_timestamp_at_training(&self) -> Option<DataTimestamp> {
         match self {
-            LocalExperiment::None | LocalExperiment::ProximityScoreUntrained(_) => None,
+            LocalExperiment::None
+            | LocalExperiment::ProximityScoreUntrained(_)
+            | LocalExperiment::SingleMaxUntrained(_) => None,
             LocalExperiment::ProximityScoreTrained(x) => Some(x.data_timestamp_at_training()),
+            LocalExperiment::SingleMaxTrained(x) => Some(x.data_timestamp_at_training()),
         }
     }
 
@@ -116,6 +134,9 @@ impl LocalExperiment {
             LocalExperiment::ProximityScoreUntrained(_)
             | LocalExperiment::ProximityScoreTrained(_) => {
                 "Scores are equal to the average distance to all other points"
+            }
+            LocalExperiment::SingleMaxUntrained(_) | LocalExperiment::SingleMaxTrained(_) => {
+                "Outlier is the single point with the largest distance to its nearest neighbour with min index on tie"
             }
         }
     }
