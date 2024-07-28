@@ -60,6 +60,7 @@ pub struct DBV {
     show_data_only: bool,
     display_mode: DisplayMode,
     on_load_reset_plot_zoom: bool,
+    show_plot_legend: bool,
     show_plot_bounds: bool,
     #[cfg(not(target_arch = "wasm32"))]
     py_experiment: PyExperiment,
@@ -148,6 +149,7 @@ impl Default for DBV {
             on_load_reset_plot_zoom: true,
             edit_point: Default::default(),
             show_plot_bounds: false,
+            show_plot_legend: true,
         }
     }
 }
@@ -321,6 +323,8 @@ impl DBV {
             ui.checkbox(&mut self.allow_boxed_zoom, "Allow boxed zoom")
                 .on_hover_text("When enabled, instructions include an explanation");
 
+            ui.checkbox(&mut self.show_plot_legend, "Show plot legend");
+
             ui.checkbox(&mut self.show_plot_bounds, "Show plot bounds");
 
             ui.checkbox(&mut self.on_load_reset_plot_zoom, "On load reset plot zoom");
@@ -453,12 +457,15 @@ impl DBV {
         }
     }
     fn ui_plot(&mut self, ui: &mut egui::Ui) {
-        let markers_plot = Plot::new("markers")
+        let mut markers_plot = Plot::new("markers")
             .data_aspect(1.0)
-            .legend(Legend::default())
             .min_size(egui::Vec2 { x: 100.0, y: 100.0 })
             .allow_boxed_zoom(self.allow_boxed_zoom)
             .allow_double_click_reset(false);
+
+        if self.show_plot_legend {
+            markers_plot = markers_plot.legend(Legend::default());
+        }
 
         let PlotResponse {
             response,
