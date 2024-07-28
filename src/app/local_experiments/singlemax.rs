@@ -43,6 +43,7 @@ impl<T> ModelTrain for &SingleMax<T> {
 
     fn train_config_clone(&self) -> Self::TrainConfig {}
 
+    #[allow(refining_impl_trait)] // Makes it easier to know what type is returned and resolves error encountered using opaque return type
     fn to_inference(&self, results: TrainResults) -> SingleMax<Trained> {
         let outlier_index = calculate_outlier_index(&results);
         let train_data = TrainingInfo {
@@ -94,6 +95,7 @@ impl<T> ModelTrain for SingleMax<T> {
 
     fn train_config_clone(&self) -> Self::TrainConfig {}
 
+    #[allow(refining_impl_trait)] // Makes it easier to know what type is returned and resolves error encountered using opaque return type
     fn to_inference(&self, results: TrainResults) -> SingleMax<Trained> {
         (&self).to_inference(results)
     }

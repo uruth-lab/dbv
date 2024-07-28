@@ -50,6 +50,7 @@ impl<T> ModelTrain for &ProximityScore<T> {
 
     fn train_config_clone(&self) -> Self::TrainConfig {}
 
+    #[allow(refining_impl_trait)] // Makes it easier to know what type is returned and resolves error encountered using opaque return type
     fn to_inference(&self, results: TrainResults) -> ProximityScore<Trained> {
         let predict_config = PredictConfig::from(&results);
         let train_data = TrainingInfo {
@@ -89,6 +90,7 @@ impl<T> ModelTrain for ProximityScore<T> {
 
     fn train_config_clone(&self) -> Self::TrainConfig {}
 
+    #[allow(refining_impl_trait)] // Makes it easier to know what type is returned and resolves error encountered using opaque return type
     fn to_inference(&self, results: TrainResults) -> ProximityScore<Trained> {
         (&self).to_inference(results)
     }
