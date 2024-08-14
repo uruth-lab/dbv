@@ -1,4 +1,4 @@
-// TODO 3: Remove this file and just use the tokio macro
+// TODO 4: Remove this file and just use the tokio macro
 #[cfg(not(target_arch = "wasm32"))]
 pub fn create_runtime() -> tokio::runtime::Runtime {
     tokio::runtime::Builder::new_current_thread()

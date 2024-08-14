@@ -298,7 +298,7 @@ impl Data {
                     std::mem::swap(&mut self.points, &mut event_data.points);
                 }
             }
-            // status_msg.add_msg(&format!("Undo: {event}")); // TODO 3: Decide if auto removal of status_msgs is worth implementing (leaving this off pending that)
+            // status_msg.add_msg(&format!("Undo: {event}")); // TODO 4: Decide if auto removal of status_msgs is worth implementing (leaving this off pending that)
         }
     }
 
@@ -340,7 +340,7 @@ impl Data {
                     std::mem::swap(&mut self.points, &mut event_data.points);
                 }
             }
-            // status_msg.add_msg(&format!("Redo: {event}")); // TODO 3: Decide if auto removal of status_msgs is worth implementing (leaving this off pending that)
+            // status_msg.add_msg(&format!("Redo: {event}")); // TODO 4: Decide if auto removal of status_msgs is worth implementing (leaving this off pending that)
         }
     }
 

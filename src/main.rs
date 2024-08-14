@@ -20,7 +20,8 @@ fn main() -> eframe::Result<()> {
             ),
         ..Default::default()
     };
-    // TODO 4: Find a way to delete saved data and not save on that close to get back to defaults
+
+    // TODO 5: Find a way to delete saved data and not save on that close to get back to defaults
     eframe::run_native(
         "DBV - Data Builder Viewer",
         native_options,

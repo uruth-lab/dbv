@@ -37,9 +37,9 @@ mod py_experiment;
 mod status_msg;
 mod ui_blocks;
 
-// TODO 3: Add support for adding notes to plot (Separate save button for annotations or save only depending on if we can integrate them, easy to do on file for matlab but csv?)
-// TODO 3: Investigate supporting bounding boxes
-// TODO 3: Add Ctrl + Z undo and Ctrl + Y redo
+// TODO 5: Add support for adding notes to plot (Separate save button for annotations or save only depending on if we can integrate them, easy to do on file for matlab but csv?)
+// TODO 5: Investigate supporting bounding boxes
+// TODO 2: Add Ctrl + Z undo and Ctrl + Y redo
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize, PartialEq)]
@@ -1031,7 +1031,7 @@ impl DBV {
                             Button::new("Train Model"),
                             Self::train_model_wrapper,
                         );
-                        // TODO 3: Add colored background using predict_batch functionality (maybe use checkbox to control if it is enabled or not)
+                        // TODO 4: Add colored background using predict_batch functionality (maybe use checkbox to control if it is enabled or not)
                         //    Might be able to use a picture behind the plot with the colors as needed
                         //    And just disable the plot background https://docs.rs/egui_plot/latest/egui_plot/struct.Plot.html#method.show_background
                         self.ui_loc_predict_config(ui);
@@ -1216,7 +1216,7 @@ impl DBV {
                                     &mut config.threshold,
                                     config.min_score..=config.max_score,
                                 ));
-                                // TODO 3: Add button to set threshold to best value based on F1
+                                // TODO 4: Add button to set threshold to best value based on F1
                             });
                         }
                         LocalExperiment::SingleMaxUntrained(..)
@@ -1224,7 +1224,7 @@ impl DBV {
                     }
                 }
             };
-            // TODO 3: Add button to search the history and see if it exists (if it doesn't ask if model should be deleted)
+            // TODO 4: Add button to search the history and see if it exists (if it doesn't ask if model should be deleted)
             // It can be missing if it was in the redo list and then a change is made other than redo because then the redo list is lost
         }
     }

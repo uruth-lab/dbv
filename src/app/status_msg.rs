@@ -13,7 +13,7 @@ use log::{debug, error};
 #[derive(Debug, Clone)]
 pub struct StatusMsg {
     msg: Arc<Mutex<String>>,
-    // TODO 3: Change to making these rendered by the struct and add colors and fade out over time
+    // TODO 4: Change to making these rendered by the struct and add colors and fade out over time
 }
 
 impl PartialEq for StatusMsg {
@@ -45,7 +45,7 @@ impl StatusMsg {
     }
 
     fn add_msg<S: Display>(&mut self, msg: S) {
-        // TODO 3: Add caching for display purposes and store message separately so they can be removed (not remove errors?)
+        // TODO 4: Add caching for display purposes and store message separately so they can be removed (not remove errors?)
         self.msg
             .lock()
             .unwrap()

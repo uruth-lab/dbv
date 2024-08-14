@@ -75,7 +75,7 @@ pub trait ModelInferenceConfig: ModelInference {
     /// Provides a way to edit the configurations
     fn predict_config_mut(&mut self) -> &mut Self::PredictConfig;
 
-    // TODO 3: Add way to get best F1 score threshold
+    // TODO 4: Add way to get best F1 score threshold
 }
 
 impl LocalExperiment {

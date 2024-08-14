@@ -154,7 +154,7 @@ impl PyExperiment {
         }
 
         // Collect run info
-        // TODO 4: Try using RegexSet to see if that helps with runtime (no likely to be a big bottle neck might not be worth it)
+        // TODO 5: Try using RegexSet to see if that helps with runtime (no likely to be a big bottle neck might not be worth it)
         let run_result = RunResult::from_stdout(&stdout);
 
         // Open output folder
@@ -293,9 +293,8 @@ impl DBV {
                     ui.label(Self::NOT_SET).on_hover_text(tip_on_how_to_set);
                 }
                 if self.py_experiment.data_filename().is_some() {
-                    // TODO 4: Only save if needed and only show warning if save is pending (Can check undo to see if save is needed, will need to add an ID)
-                    // TODO 3: This needs to be highlighted somehow
                     ui.separator();
+                    // TODO 3: Only save if needed and only show warning if save is pending (Can check undo to see if save is needed, will need to add an ID)
                     // TODO 3: Add colors to make this more visible
                     ui.strong("Warning: Overwrites data file on run");
                 }
