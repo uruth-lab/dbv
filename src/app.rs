@@ -63,6 +63,7 @@ pub struct DBV {
     show_plot_legend: bool,
     show_plot_grid_lines: bool,
     show_plot_bounds: bool,
+    show_points_color_picker: bool,
     #[cfg(not(target_arch = "wasm32"))]
     py_experiment: PyExperiment,
     loc_experiment: LocalExperiment,
@@ -150,6 +151,7 @@ impl Default for DBV {
             on_load_reset_plot_zoom: true,
             edit_point: Default::default(),
             show_plot_bounds: false,
+            show_points_color_picker: false,
             show_plot_legend: true,
             show_plot_grid_lines: true,
         }
@@ -192,6 +194,10 @@ impl DBV {
                 self.ui_run_py_experiment(ui);
             }
             ui.separator();
+            if self.show_points_color_picker {
+                self.ui_color_picker(ui);
+                ui.separator();
+            }
             ui.horizontal(|ui| {
                 self.ui_click_mode_display(ui);
                 ui.separator();
@@ -200,6 +206,42 @@ impl DBV {
                 self.ui_btn_undo_redo(ui);
             });
         }
+    }
+
+    fn ui_color_picker(&mut self, ui: &mut egui::Ui) {
+        ui.checkbox(
+            &mut self.show_points_color_picker,
+            "Show Points Colors picker",
+        );
+        ui.horizontal(|ui| {
+            ui.strong("Without Results");
+            ui.separator();
+            ui.label("Normal");
+            ui.color_edit_button_srgba(&mut self.color_normal);
+
+            ui.separator();
+            ui.label("Anomaly");
+            ui.color_edit_button_srgba(&mut self.color_anom);
+        });
+        ui.horizontal(|ui| {
+            ui.strong("With Results");
+
+            ui.separator();
+            ui.label("TP");
+            ui.color_edit_button_srgba(&mut self.color_results_true_positives);
+
+            ui.separator();
+            ui.label("FP");
+            ui.color_edit_button_srgba(&mut self.color_results_false_positives);
+
+            ui.separator();
+            ui.label("TN");
+            ui.color_edit_button_srgba(&mut self.color_results_true_negatives);
+
+            ui.separator();
+            ui.label("FN");
+            ui.color_edit_button_srgba(&mut self.color_results_false_negatives);
+        });
     }
 
     fn ui_click_mode_display(&mut self, ui: &mut egui::Ui) {
@@ -252,37 +294,10 @@ impl DBV {
                     .clamp_range(0.0..=f64::INFINITY)
                     .prefix("Point Display Radius: "),
             );
-            ui.menu_button("Points Colors", |ui| {
-                ui.horizontal(|ui| {
-                    ui.strong("Without Results");
-                    ui.separator();
-                    ui.label("Normal");
-                    ui.color_edit_button_srgba(&mut self.color_normal);
-
-                    ui.separator();
-                    ui.label("Anomaly");
-                    ui.color_edit_button_srgba(&mut self.color_anom);
-                });
-                ui.horizontal(|ui| {
-                    ui.strong("With Results");
-
-                    ui.separator();
-                    ui.label("TP");
-                    ui.color_edit_button_srgba(&mut self.color_results_true_positives);
-
-                    ui.separator();
-                    ui.label("FP");
-                    ui.color_edit_button_srgba(&mut self.color_results_false_positives);
-
-                    ui.separator();
-                    ui.label("TN");
-                    ui.color_edit_button_srgba(&mut self.color_results_true_negatives);
-
-                    ui.separator();
-                    ui.label("FN");
-                    ui.color_edit_button_srgba(&mut self.color_results_false_negatives);
-                });
-            });
+            ui.checkbox(
+                &mut self.show_points_color_picker,
+                "Show Points Colors picker",
+            );
             ui.separator();
             let mut should_remove_on_click: bool = self.click_mode.is_delete_points();
             ui.checkbox(&mut should_remove_on_click, "Should remove point on click");
