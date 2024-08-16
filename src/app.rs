@@ -2,7 +2,7 @@ use std::{fmt::Display, path::PathBuf};
 
 use anyhow::Context;
 use ecolor::Color32;
-use egui::{Button, Checkbox, Label, Sense, Widget};
+use egui::{Button, Checkbox, KeyboardShortcut, Label, Modifiers, Sense, Widget};
 use egui_extras::{Column, TableBuilder};
 use egui_plot::{Legend, MarkerShape, Plot, PlotBounds, PlotResponse, Points};
 use log::{debug, info};
@@ -39,7 +39,6 @@ mod ui_blocks;
 
 // TODO 5: Add support for adding notes to plot (Separate save button for annotations or save only depending on if we can integrate them, easy to do on file for matlab but csv?)
 // TODO 5: Investigate supporting bounding boxes
-// TODO 2: Add Ctrl + Z undo and Ctrl + Y redo
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize, PartialEq)]
@@ -64,6 +63,8 @@ pub struct DBV {
     show_plot_grid_lines: bool,
     show_plot_bounds: bool,
     show_points_color_picker: bool,
+    shortcut_undo: KeyboardShortcut,
+    shortcut_redo: KeyboardShortcut,
     #[cfg(not(target_arch = "wasm32"))]
     py_experiment: PyExperiment,
     loc_experiment: LocalExperiment,
@@ -154,6 +155,8 @@ impl Default for DBV {
             show_points_color_picker: false,
             show_plot_legend: true,
             show_plot_grid_lines: true,
+            shortcut_undo: egui::KeyboardShortcut::new(Modifiers::CTRL, egui::Key::Z),
+            shortcut_redo: egui::KeyboardShortcut::new(Modifiers::CTRL, egui::Key::Y),
         }
     }
 }
@@ -397,15 +400,29 @@ impl DBV {
     }
 
     fn ui_btn_undo_redo(&mut self, ui: &mut egui::Ui) {
+        if self.data.has_undo() && ui.input_mut(|i| i.consume_shortcut(&self.shortcut_undo)) {
+            self.data.undo(&mut self.status_msg);
+        }
+
+        if self.data.has_redo() && ui.input_mut(|i| i.consume_shortcut(&self.shortcut_redo)) {
+            self.data.redo(&mut self.status_msg);
+        }
+
         if ui
-            .add_enabled(self.data.has_undo(), Button::new("Undo"))
+            .add_enabled(
+                self.data.has_undo(),
+                Button::new("Undo").shortcut_text(ui.ctx().format_shortcut(&self.shortcut_undo)),
+            )
             .clicked()
         {
             self.data.undo(&mut self.status_msg);
             ui.close_menu();
         }
         if ui
-            .add_enabled(self.data.has_redo(), Button::new("Redo"))
+            .add_enabled(
+                self.data.has_redo(),
+                Button::new("Redo").shortcut_text(ui.ctx().format_shortcut(&self.shortcut_redo)),
+            )
             .clicked()
         {
             self.data.redo(&mut self.status_msg);
