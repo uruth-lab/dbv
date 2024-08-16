@@ -213,7 +213,15 @@ impl DBV {
             &mut self.show_points_color_picker,
             "Show Points Colors picker",
         );
-        // TODO 1: Add option to reset colors
+        if ui.button("Reset Colors").clicked() {
+            let default = Self::default();
+            self.color_anom = default.color_anom;
+            self.color_normal = default.color_normal;
+            self.color_results_false_negatives = default.color_results_false_negatives;
+            self.color_results_false_positives = default.color_results_false_positives;
+            self.color_results_true_negatives = default.color_results_true_negatives;
+            self.color_results_true_positives = default.color_results_true_positives;
+        }
         ui.horizontal(|ui| {
             ui.strong("Without Results");
             ui.separator();
