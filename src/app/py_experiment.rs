@@ -20,15 +20,14 @@ use super::{data_definition::DataPoint, status_msg::StatusMsg};
 #[derive(Debug, Default, serde::Serialize, serde::Deserialize, PartialEq, Eq, Clone)]
 pub struct PyExperiment {
     pub selected_algorithms: SelectedAlgorithms,
+    /// Data directory that is adjacent to the python scripts
+    data_dir: Option<String>,
     /// Stores the file name to be appended to the data folder
     data_filename: Option<String>,
     pub venv_activate_filename: Option<String>,
 }
 
 impl PyExperiment {
-    // TODO 1: Make this configurable as a setting to support the fact that the code is now separate
-    pub const DATA_DIR: &'static str = "../data";
-
     pub fn unset_filename(&mut self) {
         self.data_filename = None;
     }
@@ -41,13 +40,18 @@ impl PyExperiment {
             bail!("only '.mat' files are supported for experiments but found {path:?}")
         }
 
+        let Some(data_dir) = self.data_dir() else {
+            // TODO 4: Would it be better to just set to the incoming path in this case?
+            bail!("unable to set filename as data_directory is not set")
+        };
+
         // Ensure value file is in correct folder or no folder specified
         if let Some(parent) = path.parent() {
-            if !same_file::is_same_file(Self::DATA_DIR, parent).is_ok_and(|x| x) {
+            if !same_file::is_same_file(data_dir, parent).is_ok_and(|x| x) {
                 info!("path: {path:?}");
                 bail!(
                     "only files in data folder ({:?}) are allowed but found {:?} as parent of file",
-                    Self::DATA_DIR,
+                    data_dir,
                     parent.display()
                 );
             }
@@ -77,6 +81,9 @@ impl PyExperiment {
         if !self.selected_algorithms.has_at_least_one() {
             result.push(NotReadyReason::NoAlgorithmSelected)
         }
+        if self.data_dir.is_none() {
+            result.push(NotReadyReason::NoDataDirSet)
+        }
         if self.data_filename.is_none() {
             result.push(NotReadyReason::NoFileSet)
         }
@@ -95,15 +102,16 @@ impl PyExperiment {
             bail!("Not ready to run: {}", reasons.to_delimited_string())
         }
 
+        let data_path = Path::new(self.data_dir().expect("required to be ready"));
+
         // Save File
-        let path =
-            Path::new(Self::DATA_DIR).join(self.data_filename().expect("required to be ready"));
+        let path = data_path.join(self.data_filename().expect("required to be ready"));
         let file = rfd::FileHandle::from(path);
         points.save_to_file(&file).await.context("save failed")?;
         status_msg.info(format!("Saved data before calling script to {file:?}"));
 
         // Send Command
-        let working_dir = match Path::new(Self::DATA_DIR).parent() {
+        let working_dir = match data_path.parent() {
             Some(x) => x,
             None => bail!("Failed to get parent directory of data directory"),
         };
@@ -169,6 +177,16 @@ impl PyExperiment {
 
         Ok(())
     }
+
+    pub fn data_dir(&self) -> Option<&String> {
+        self.data_dir.as_ref()
+    }
+
+    pub fn set_data_dir(&mut self, value: Option<String>) -> anyhow::Result<()> {
+        // TODO 2: Validate input is a directory and that the script can be found relative to this folder
+        self.data_dir = value;
+        Ok(())
+    }
 }
 
 #[derive(Debug, Default, serde::Serialize, serde::Deserialize, PartialEq, Eq, Clone)]
@@ -208,7 +226,9 @@ impl SelectedAlgorithms {
     }
 }
 
+#[allow(clippy::enum_variant_names)] // Allowed as other prefix may be added later and want to keep them readable
 pub enum NotReadyReason {
+    NoDataDirSet,
     NoFileSet,
     NoAlgorithmSelected,
 }
@@ -216,6 +236,7 @@ pub enum NotReadyReason {
 impl Display for NotReadyReason {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let value = match self {
+            NotReadyReason::NoDataDirSet => "No Data Directory set",
             NotReadyReason::NoFileSet => "No filename set",
             NotReadyReason::NoAlgorithmSelected => "No Algorithm Selected",
         };
@@ -327,6 +348,29 @@ impl DBV {
 
             ui.separator();
             ui.horizontal(|ui| {
+                ui.label("Data directory:");
+                if let Some(folder_name) = self.py_experiment.data_dir() {
+                    let mut should_use_folder = true;
+                    ui.checkbox(&mut should_use_folder, "");
+                    ui.label(folder_name);
+
+                    if !should_use_folder {
+                        self.py_experiment
+                            .set_data_dir(None)
+                            .expect("should always be able to set to None");
+                    }
+                } else {
+                    ui.label(Self::NOT_SET);
+                }
+                ui.separator();
+                if ui.button("Browse...").clicked() {
+                    self.browse_for_data_dir();
+                }
+                ui.label("(Folder in experimental_framework for data)");
+            });
+
+            ui.separator();
+            ui.horizontal(|ui| {
                 let not_ready_reasons = self.py_experiment.not_ready_reasons();
                 if self.op_state.is_running_py_experiment() {
                     ui.spinner();
@@ -377,16 +421,50 @@ impl DBV {
         }));
     }
 
-    pub(super) fn browse_for_activation_file(&mut self) {
-        if let Some(path) = rfd::FileDialog::new()
-            .set_title("Select venv activation script")
-            .pick_file()
+    fn browse_for_activation_file(&mut self) {
+        if let Some(file_name) =
+            Self::browse_for_file("Select venv activation script", &mut self.status_msg)
         {
-            match path.to_str() {
-                Some(s) => self.py_experiment.venv_activate_filename = Some(s.to_string()),
-                None => self.status_msg.error_display(
+            self.py_experiment.venv_activate_filename = Some(file_name);
+        }
+    }
+
+    fn browse_for_data_dir(&mut self) {
+        if let Some(file_name) = Self::browse_for_folder("Select Data Folder", &mut self.status_msg)
+        {
+            if let Err(e) = self
+                .py_experiment
+                .set_data_dir(Some(file_name))
+                .context("failed to set data_dir")
+            {
+                self.status_msg.error_display(e);
+            };
+        }
+    }
+
+    fn browse_for_file(title: &str, status_msg: &mut StatusMsg) -> Option<String> {
+        let path = rfd::FileDialog::new().set_title(title).pick_file()?;
+        match path.to_str() {
+            Some(s) => Some(s.to_string()),
+            None => {
+                status_msg.error_display(
                     "Unable to convert selected filename to string. (Invalid UTF-8?)",
-                ),
+                );
+                None
+            }
+        }
+    }
+
+    fn browse_for_folder(title: &str, status_msg: &mut StatusMsg) -> Option<String> {
+        // TODO 4: Refactor to merge with `browse_for_file``
+        let path = rfd::FileDialog::new().set_title(title).pick_folder()?;
+        match path.to_str() {
+            Some(s) => Some(s.to_string()),
+            None => {
+                status_msg.error_display(
+                    "Unable to convert selected folder name to string. (Invalid UTF-8?)",
+                );
+                None
             }
         }
     }

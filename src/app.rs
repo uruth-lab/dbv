@@ -746,10 +746,16 @@ impl DBV {
     fn save_data(&mut self, ctx: egui::Context) {
         debug_assert!(self.op_state.is_normal());
         let points = self.data.clone_points(); // Cloning seemed to be the most practical way I could think of to get a new copy to send into the closure
+        #[cfg(not(target_arch = "wasm32"))]
+        let data_dir = self.py_experiment.data_dir().cloned();
         self.op_state = OperationalState::Saving(execute(async move {
             let dialog = rfd::AsyncFileDialog::new().set_title("Save as");
             #[cfg(not(target_arch = "wasm32"))]
-            let dialog = dialog.set_directory(PyExperiment::DATA_DIR);
+            let dialog = if let Some(data_dir) = data_dir {
+                dialog.set_directory(data_dir)
+            } else {
+                dialog
+            };
             #[cfg(target_arch = "wasm32")]
             let dialog = dialog.set_file_name("manual_data_creator.csv");
             let Some(file) = dialog.save_file().await else {
@@ -776,10 +782,16 @@ impl DBV {
     fn load_data(&mut self, ctx: egui::Context) {
         debug_assert!(self.op_state.is_normal());
         let mut status_msg = self.status_msg.clone(); // Clone is cheap because type uses an arc internally
+        #[cfg(not(target_arch = "wasm32"))]
+        let data_dir = self.py_experiment.data_dir().cloned();
         self.op_state = OperationalState::Loading(execute(async move {
             let dialog = rfd::AsyncFileDialog::new().set_title("Load data");
             #[cfg(not(target_arch = "wasm32"))]
-            let dialog = dialog.set_directory(PyExperiment::DATA_DIR);
+            let dialog = if let Some(data_dir) = data_dir {
+                dialog.set_directory(data_dir)
+            } else {
+                dialog
+            };
             let Some(file) = dialog.pick_file().await else {
                 // user canceled
                 ctx.request_repaint();
