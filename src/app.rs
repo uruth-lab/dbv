@@ -195,7 +195,7 @@ impl DBV {
             }
             ui.separator();
             if self.show_points_color_picker {
-                self.ui_color_picker(ui);
+                self.ui_points_color_picker(ui);
                 ui.separator();
             }
             ui.horizontal(|ui| {
@@ -208,11 +208,12 @@ impl DBV {
         }
     }
 
-    fn ui_color_picker(&mut self, ui: &mut egui::Ui) {
+    fn ui_points_color_picker(&mut self, ui: &mut egui::Ui) {
         ui.checkbox(
             &mut self.show_points_color_picker,
             "Show Points Colors picker",
         );
+        // TODO 1: Add option to reset colors
         ui.horizontal(|ui| {
             ui.strong("Without Results");
             ui.separator();
