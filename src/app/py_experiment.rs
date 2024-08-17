@@ -184,6 +184,9 @@ impl PyExperiment {
 
     pub fn set_data_dir(&mut self, value: Option<String>) -> anyhow::Result<()> {
         // TODO 2: Validate input is a directory and that the script can be found relative to this folder
+        // Notes as this isn't going to be implemented now.
+        // - [Error] If unable to find "src" folder in same folder as folder passed
+        // - [Warn] If folder is not "data"
         self.data_dir = value;
         Ok(())
     }
