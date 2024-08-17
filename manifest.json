@@ -1,0 +1,10 @@
+{
+  "name": "DBV PWA",
+  "short_name": "dbv-pwa",
+  "lang": "en-US",
+  "id": "/index.html",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "white",
+  "theme_color": "white"
+}
